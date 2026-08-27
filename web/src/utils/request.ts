@@ -2,8 +2,13 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 
+// 硬编码 API 地址，避免 Cloudflare Pages 构建时 .env.production 不生效
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://agri-monitor-api.yangwen008007.workers.dev/api'
+
+console.log('[API] baseURL =', API_BASE)
+
 const request = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || '/api',
+  baseURL: API_BASE,
   timeout: 30000,
 })
 
