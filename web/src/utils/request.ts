@@ -12,6 +12,9 @@ const request = axios.create({
   timeout: 30000,
 })
 
+// 401 跳转防抖标志，防止多个请求同时 401 导致反复跳转
+let isRedirecting = false
+
 // 请求拦截器
 request.interceptors.request.use(
   (config) => {
@@ -32,9 +35,14 @@ request.interceptors.response.use(
       return data
     }
     if (data.code === 401) {
-      localStorage.removeItem('token')
-      router.push('/login')
-      ElMessage.error('登录已过期，请重新登录')
+      if (!isRedirecting) {
+        isRedirecting = true
+        localStorage.removeItem('token')
+        ElMessage.error('登录已过期，请重新登录')
+        router.push('/login').finally(() => {
+          setTimeout(() => { isRedirecting = false }, 1000)
+        })
+      }
       return Promise.reject(data)
     }
     ElMessage.error(data.message || '请求失败')
@@ -43,10 +51,14 @@ request.interceptors.response.use(
   (error) => {
     const apiMsg = error.response?.data?.message
     if (error.response?.status === 401) {
-      console.error('[API] 401 Unauthorized:', apiMsg, '| URL:', error.config?.url)
-      localStorage.removeItem('token')
-      router.push('/login')
-      ElMessage.error(apiMsg || '登录已过期，请重新登录')
+      if (!isRedirecting) {
+        isRedirecting = true
+        localStorage.removeItem('token')
+        ElMessage.error(apiMsg || '登录已过期，请重新登录')
+        router.push('/login').finally(() => {
+          setTimeout(() => { isRedirecting = false }, 1000)
+        })
+      }
     } else {
       ElMessage.error(apiMsg || error.message || '网络错误')
     }

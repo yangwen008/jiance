@@ -204,37 +204,45 @@ function loadMap() {
 }
 
 async function loadDevices() {
-  const res: any = await getDevices({ pageSize: 100 })
-  devices.value = res.data?.list || []
-  stats.onlineDevices = devices.value.filter((d: any) => d.status === 'online').length
-  if (devices.value.length) {
-    weatherDeviceId.value = devices.value[0].id
-    loadWeather()
+  try {
+    const res: any = await getDevices({ pageSize: 100 })
+    devices.value = res.data?.list || []
+    stats.onlineDevices = devices.value.filter((d: any) => d.status === 'online').length
+    if (devices.value.length) {
+      weatherDeviceId.value = devices.value[0].id
+      await loadWeather()  // ✅ 添加 await，确保异步错误被捕获
+    }
+  } catch (err) {
+    console.error('[Dashboard] 加载设备失败:', err)
   }
 }
 
 async function loadWeather() {
   if (!weatherDeviceId.value || !weatherChartRef.value) return
-  const res: any = await getStats({ deviceId: weatherDeviceId.value, period: 'day' })
-  const data = res.data || []
+  try {
+    const res: any = await getStats({ deviceId: weatherDeviceId.value, period: 'day' })
+    const data = res.data || []
 
-  if (!weatherChart) {
-    weatherChart = echarts.init(weatherChartRef.value)
+    if (!weatherChart) {
+      weatherChart = echarts.init(weatherChartRef.value)
+    }
+    weatherChart.setOption({
+      tooltip: { trigger: 'axis' },
+      legend: { data: ['温度', '湿度', '降雨量'] },
+      xAxis: { type: 'category', data: data.map((d: any) => d.date) },
+      yAxis: [
+        { type: 'value', name: '温度(℃)/湿度(%)' },
+        { type: 'value', name: '降雨(mm)' },
+      ],
+      series: [
+        { name: '温度', type: 'line', data: data.map((d: any) => d.temp_avg), smooth: true },
+        { name: '湿度', type: 'line', data: data.map((d: any) => d.humidity_avg), smooth: true },
+        { name: '降雨量', type: 'bar', yAxisIndex: 1, data: data.map((d: any) => d.rainfall_total) },
+      ],
+    })
+  } catch (err) {
+    console.error('[Dashboard] 加载气象数据失败:', err)
   }
-  weatherChart.setOption({
-    tooltip: { trigger: 'axis' },
-    legend: { data: ['温度', '湿度', '降雨量'] },
-    xAxis: { type: 'category', data: data.map((d: any) => d.date) },
-    yAxis: [
-      { type: 'value', name: '温度(℃)/湿度(%)' },
-      { type: 'value', name: '降雨(mm)' },
-    ],
-    series: [
-      { name: '温度', type: 'line', data: data.map((d: any) => d.temp_avg), smooth: true },
-      { name: '湿度', type: 'line', data: data.map((d: any) => d.humidity_avg), smooth: true },
-      { name: '降雨量', type: 'bar', yAxisIndex: 1, data: data.map((d: any) => d.rainfall_total) },
-    ],
-  })
 }
 
 async function loadPestChart() {
@@ -256,7 +264,9 @@ async function loadPestChart() {
         },
       ],
     })
-  } catch {}
+  } catch (err) {
+    console.error('[Dashboard] 加载虫情图表失败:', err)
+  }
 }
 
 async function loadAlerts() {
@@ -265,7 +275,9 @@ async function loadAlerts() {
     recentAlerts.value = res.data?.list || []
     const unreadRes: any = await getUnreadCount()
     stats.unreadAlerts = unreadRes.data?.count || 0
-  } catch {}
+  } catch (err) {
+    console.error('[Dashboard] 加载预警失败:', err)
+  }
 }
 
 async function loadOrders() {
@@ -273,14 +285,18 @@ async function loadOrders() {
     const res: any = await getOrderStats()
     const pending = res.data?.byStatus?.find((s: any) => s.status === 'pending')
     stats.pendingOrders = pending?.count || 0
-  } catch {}
+  } catch (err) {
+    console.error('[Dashboard] 加载订单统计失败:', err)
+  }
 }
 
 async function loadPestCount() {
   try {
     const res: any = await getSpecies({})
     stats.todayPest = (res.data || []).reduce((sum: number, d: any) => sum + (d.total_count || 0), 0)
-  } catch {}
+  } catch (err) {
+    console.error('[Dashboard] 加载虫情统计失败:', err)
+  }
 }
 
 onMounted(async () => {
