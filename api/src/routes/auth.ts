@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { signToken } from '../utils/jwt';
+import { signToken, verifyToken } from '../utils/jwt';
 import { success, error } from '../utils/response';
 import { uid } from '../utils/uid';
 import type { Env, User } from '../types';
