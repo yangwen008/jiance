@@ -14,6 +14,7 @@ import { orderRoutes } from './routes/order';
 import { aiRoutes } from './routes/ai';
 import { exportRoutes } from './routes/export';
 import { cronRoutes } from './routes/cron';
+import { userRoutes } from './routes/user';
 import type { Env } from './types';
 
 type Variables = {
@@ -89,6 +90,9 @@ app.route('/api/export', exportRoutes);
 
 // 定时任务
 app.route('/api/cron', cronRoutes);
+
+// 用户管理
+app.route('/api/users', userRoutes);
 
 // ==================== 404 ====================
 app.notFound((c) => {
