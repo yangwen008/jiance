@@ -228,8 +228,8 @@ pestRoutes.get('/species', async (c) => {
 
 // ========== 虫情日统计汇总（供 Cron Trigger 调用）==========
 pestRoutes.post('/aggregate-daily', async (c) => {
-  const body = await c.req.json<{ date?: string }>().catch(() => ({}));
-  const date = body.date || new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const rawBody: { date?: string } = await c.req.json().catch(() => ({}));
+  const date = rawBody.date || new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
   const { results: devices } = await c.env.DB.prepare(
     "SELECT id FROM devices WHERE type = 'pest_monitor'"

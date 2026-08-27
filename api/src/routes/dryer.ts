@@ -28,7 +28,7 @@ dryerRoutes.get('/', async (c) => {
 
   const countSql = sql.replace(/SELECT d\.\*.*?FROM/, 'SELECT COUNT(*) as total FROM');
   const countResult = await c.env.DB.prepare(countSql).bind(...params).first<{ total: number }>();
-  const total = countResult?.count || 0;
+  const total = countResult?.total || 0;
 
   sql += ' ORDER BY d.created_at DESC LIMIT ? OFFSET ?';
   params.push(pageSize, (page - 1) * pageSize);

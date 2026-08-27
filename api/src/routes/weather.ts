@@ -205,9 +205,9 @@ weatherRoutes.get('/soil', async (c) => {
 
 // ========== 日统计汇总（供 Cron Trigger 调用）==========
 weatherRoutes.post('/aggregate-daily', async (c) => {
-  const body = await c.req.json<{ date?: string }>().catch(() => ({}));
+  const rawBody: { date?: string } = await c.req.json().catch(() => ({}));
   // 默认汇总昨天的数据
-  const date = body.date || new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const date = rawBody.date || new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
   // 获取积温基准温度
   const baseTempConfig = await c.env.DB.prepare(

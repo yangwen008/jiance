@@ -8,8 +8,8 @@ export const cronRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
 
 // ========== 每日定时任务：汇总统计 ==========
 cronRoutes.post('/daily-aggregate', async (c) => {
-  const body = await c.req.json<{ date?: string }>().catch(() => ({}));
-  const date = body.date || new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const rawBody: { date?: string } = await c.req.json().catch(() => ({}));
+  const date = rawBody.date || new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
   // 调用气象日统计汇总
   const weatherRes = await fetch(`${new URL(c.req.url).origin}/api/weather/aggregate-daily`, {
