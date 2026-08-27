@@ -33,11 +33,21 @@ app.get('/api/health', (c) => {
   return c.json(success({ status: 'ok', timestamp: new Date().toISOString() }));
 });
 
+// ==================== 需要认证的路由 ====================
+// 排除 /api/auth 和 /api/health
+app.use('/api/devices/*', authMiddleware());
+app.use('/api/weather/*', authMiddleware());
+app.use('/api/pest/*', authMiddleware());
+app.use('/api/alerts/*', authMiddleware());
+app.use('/api/providers/*', authMiddleware());
+app.use('/api/machines/*', authMiddleware());
+app.use('/api/dryers/*', authMiddleware());
+app.use('/api/orders/*', authMiddleware());
+app.use('/api/ai/*', authMiddleware());
+app.use('/api/export/*', authMiddleware());
+
 // ==================== 公开路由（无需认证）====================
 app.route('/api/auth', authRoutes);
-
-// ==================== 需要认证的路由 ====================
-app.use('/api/*', authMiddleware());
 
 // 设备管理
 app.route('/api/devices', deviceRoutes);
