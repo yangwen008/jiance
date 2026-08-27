@@ -225,3 +225,45 @@ pestRoutes.get('/species', async (c) => {
   const { results } = await c.env.DB.prepare(sql).bind(...params).all();
   return c.json(success(results || []));
 });
+
+// ========== 虫情日统计汇总（供 Cron Trigger 调用）==========
+pestRoutes.post('/aggregate-daily', async (c) => {
+  const body = await c.req.json<{ date?: string }>().catch(() => ({}));
+  const date = body.date || new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+  const { results: devices } = await c.env.DB.prepare(
+    "SELECT id FROM devices WHERE type = 'pest_monitor'"
+  ).all<{ id: string }>();
+
+  let aggregated = 0;
+
+  for (const device of devices || []) {
+    const { results: rows } = await c.env.DB.prepare(
+      `SELECT
+        COALESCE(verified_type, pest_type) as pest_type,
+        SUM(count) as total_count,
+        AVG(confidence) as avg_confidence
+       FROM pest_data
+       WHERE device_id = ? AND timestamp >= ? AND timestamp < ?
+       GROUP BY COALESCE(verified_type, pest_type)`
+    ).bind(device.id, date, date + 'T24:00:00').all<Record<string, unknown>>();
+
+    for (const row of rows || []) {
+      await c.env.DB.prepare(
+        `INSERT INTO pest_daily (device_id, date, pest_type, total_count, avg_confidence)
+         VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(device_id, date, pest_type) DO UPDATE SET
+           total_count = excluded.total_count, avg_confidence = excluded.avg_confidence`
+      ).bind(
+        device.id, date,
+        row.pest_type as string,
+        row.total_count as number,
+        Math.round(((row.avg_confidence as number) || 0) * 100) / 100
+      ).run();
+    }
+
+    aggregated++;
+  }
+
+  return c.json(success({ date, devices: aggregated }, `已汇总 ${aggregated} 个设备的 ${date} 虫情日统计`));
+});

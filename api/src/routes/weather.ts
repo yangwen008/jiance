@@ -202,3 +202,73 @@ weatherRoutes.get('/soil', async (c) => {
 
   return c.json(success(results || []));
 });
+
+// ========== 日统计汇总（供 Cron Trigger 调用）==========
+weatherRoutes.post('/aggregate-daily', async (c) => {
+  const body = await c.req.json<{ date?: string }>().catch(() => ({}));
+  // 默认汇总昨天的数据
+  const date = body.date || new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+  // 获取积温基准温度
+  const baseTempConfig = await c.env.DB.prepare(
+    "SELECT value FROM system_config WHERE key = 'accumulation_base_temp'"
+  ).first<{ value: string }>();
+  const baseTemp = Number(baseTempConfig?.value) || 10;
+
+  // 汇总所有气象设备的当天数据
+  const { results: devices } = await c.env.DB.prepare(
+    "SELECT id FROM devices WHERE type = 'weather'"
+  ).all<{ id: string }>();
+
+  let aggregated = 0;
+
+  for (const device of devices || []) {
+    const row = await c.env.DB.prepare(
+      `SELECT
+        MAX(CAST(air_temp AS REAL)) as temp_max,
+        MIN(CAST(air_temp AS REAL)) as temp_min,
+        AVG(CAST(air_temp AS REAL)) as temp_avg,
+        MAX(CAST(air_humidity AS REAL)) as humidity_max,
+        MIN(CAST(air_humidity AS REAL)) as humidity_min,
+        AVG(CAST(air_humidity AS REAL)) as humidity_avg,
+        SUM(CAST(rainfall AS REAL)) as rainfall_total,
+        MAX(CAST(wind_speed AS REAL)) as wind_speed_max,
+        MAX(CAST(light AS REAL)) as light_max
+       FROM weather_data
+       WHERE device_id = ? AND timestamp >= ? AND timestamp < ?`
+    ).bind(device.id, date, date + 'T24:00:00').first<Record<string, number | null>>();
+
+    if (!row || row.temp_avg === null) continue;
+
+    // 计算有效积温（日均温 - 基准温度，仅取正值）
+    const effectiveTemp = Math.max(0, (row.temp_avg || 0) - baseTemp);
+
+    // 估算有效光照时长（光照 > 1000 Lux 的记录数 * 采集间隔，假设5分钟一次）
+    const lightCount = await c.env.DB.prepare(
+      `SELECT COUNT(*) as cnt FROM weather_data
+       WHERE device_id = ? AND timestamp >= ? AND timestamp < ? AND CAST(light AS REAL) > 1000`
+    ).bind(device.id, date, date + 'T24:00:00').first<{ cnt: number }>();
+    const lightHours = ((lightCount?.cnt || 0) * 5) / 60;
+
+    // Upsert 日统计
+    await c.env.DB.prepare(
+      `INSERT INTO weather_daily (device_id, date, temp_max, temp_min, temp_avg, humidity_max, humidity_min, humidity_avg, rainfall_total, wind_speed_max, light_max, light_hours, effective_temp)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(device_id, date) DO UPDATE SET
+         temp_max = excluded.temp_max, temp_min = excluded.temp_min, temp_avg = excluded.temp_avg,
+         humidity_max = excluded.humidity_max, humidity_min = excluded.humidity_min, humidity_avg = excluded.humidity_avg,
+         rainfall_total = excluded.rainfall_total, wind_speed_max = excluded.wind_speed_max,
+         light_max = excluded.light_max, light_hours = excluded.light_hours, effective_temp = excluded.effective_temp`
+    ).bind(
+      device.id, date,
+      row.temp_max, row.temp_min, Math.round((row.temp_avg || 0) * 100) / 100,
+      row.humidity_max, row.humidity_min, Math.round((row.humidity_avg || 0) * 100) / 100,
+      row.rainfall_total || 0, row.wind_speed_max || 0, row.light_max || 0,
+      Math.round(lightHours * 100) / 100, Math.round(effectiveTemp * 100) / 100
+    ).run();
+
+    aggregated++;
+  }
+
+  return c.json(success({ date, devices: aggregated }, `已汇总 ${aggregated} 个设备的 ${date} 日统计`));
+});

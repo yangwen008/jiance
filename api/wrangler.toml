@@ -33,6 +33,10 @@ SMS_SIGN_NAME = "农情监测"
 SMS_TEMPLATE_CODE = "SMS_XXXXXXX"
 CORS_ORIGIN = "*"
 
+# Cron Triggers（每日凌晨2点汇总+每30分钟检测离线）
+[triggers]
+crons = ["0 2 * * *", "*/30 * * * *"]
+
 # 生产环境（通过 wrangler secret 设置敏感变量）
 # [env.production]
 # vars = { CORS_ORIGIN = "https://your-domain.com" }

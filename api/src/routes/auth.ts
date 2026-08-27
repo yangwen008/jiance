@@ -120,39 +120,6 @@ authRoutes.get('/test-token', async (c) => {
   }
 });
 
-// ========== 诊断接口（临时，排查用） ==========
-authRoutes.get('/debug', async (c) => {
-  // 检查 admin 用户是否存在
-  const admin = await c.env.DB.prepare(
-    'SELECT id, phone, name, role, status, password FROM users WHERE phone = ?'
-  ).bind('13800000000').first();
-
-  // 检查 JWT_SECRET 是否是占位符
-  const secret = c.env.JWT_SECRET;
-  const isPlaceholder = secret.includes('your-jwt-secret') || secret.length < 10;
-
-  // 测试密码验证
-  let passwordOk = false;
-  if (admin) {
-    const data = new TextEncoder().encode('admin123456');
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    const hashHex = Array.from(new Uint8Array(hash))
-      .map((b) => b.toString(16).padStart(2, '0'))
-      .join('');
-    passwordOk = hashHex === (admin as Record<string, unknown>).password;
-  }
-
-  return c.json({
-    adminExists: !!admin,
-    adminStatus: (admin as Record<string, unknown>)?.status,
-    adminRole: (admin as Record<string, unknown>)?.role,
-    passwordHashMatch: passwordOk,
-    secretLength: secret.length,
-    secretIsPlaceholder: isPlaceholder,
-    secretPrefix: secret.substring(0, 5) + '...',
-  });
-});
-
 // ========== 修改密码 ==========
 authRoutes.put('/password', async (c) => {
   const payload = c.get('user');

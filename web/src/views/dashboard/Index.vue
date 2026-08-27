@@ -82,9 +82,7 @@
       <el-col :span="12">
         <el-card shadow="hover">
           <template #header><span>监测点位分布</span></template>
-          <div ref="mapRef" style="height: 300px; background: #e8f4f8; display: flex; align-items: center; justify-content: center; color: #999">
-            地图加载中...
-          </div>
+          <div ref="mapRef" style="height: 300px"></div>
         </el-card>
       </el-col>
 
@@ -123,6 +121,7 @@ const devices = ref<any[]>([])
 const weatherDeviceId = ref('')
 const weatherChartRef = ref<HTMLElement>()
 const pestChartRef = ref<HTMLElement>()
+const mapRef = ref<HTMLElement>()
 const recentAlerts = ref<any[]>([])
 
 const stats = reactive({
@@ -134,6 +133,75 @@ const stats = reactive({
 
 let weatherChart: echarts.ECharts | null = null
 let pestChart: echarts.ECharts | null = null
+
+// 高德地图 API Key（请替换为你自己的 Key）
+const AMAP_KEY = '***'
+
+function loadMap() {
+  if (!mapRef.value) return
+  const script = document.createElement('script')
+  script.src = `https://webapi.amap.com/maps?v=2.0&key=${AMAP_KEY}`
+  script.onload = () => {
+    // @ts-ignore
+    const map = new AMap.Map(mapRef.value, {
+      zoom: 12,
+      mapStyle: 'amap://styles/normal',
+    })
+
+    // 添加设备标注
+    // @ts-ignore
+    const markers: any[] = []
+    const typeColors: Record<string, string> = {
+      weather: '#409eff',
+      camera: '#67c23a',
+      pest_monitor: '#e6a23c',
+      multispectral: '#909399',
+    }
+    const typeNames: Record<string, string> = {
+      weather: '气象站',
+      camera: '摄像头',
+      pest_monitor: '虫情仪',
+      multispectral: '多光谱',
+    }
+
+    for (const device of devices.value) {
+      if (!device.lat || !device.lng) continue
+      // @ts-ignore
+      const marker = new AMap.Marker({
+        position: [device.lng, device.lat],
+        title: device.name,
+      })
+      const color = typeColors[device.type] || '#909399'
+      marker.setLabel({
+        direction: 'top',
+        offset: [0, -5],
+        content: `<div style="background:${color};color:#fff;padding:2px 6px;border-radius:3px;font-size:12px;white-space:nowrap">${device.name}</div>`,
+      })
+      // @ts-ignore
+      marker.on('click', () => {
+        // @ts-ignore
+        const info = new AMap.InfoWindow({
+          content: `<div style="padding:8px"><b>${device.name}</b><br/>类型：${typeNames[device.type] || device.type}<br/>状态：${device.status === 'online' ? '在线' : '离线'}<br/>位置：${device.village || '-'}</div>`,
+          offset: [0, -30],
+        })
+        info.open(map, marker.getPosition())
+      })
+      markers.push(marker)
+    }
+
+    if (markers.length) {
+      map.add(markers)
+      // @ts-ignore
+      map.setFitView(markers, false, [50, 50, 50, 50])
+    }
+  }
+  script.onerror = () => {
+    if (mapRef.value) {
+      mapRef.value.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#999">地图加载失败，请检查 API Key</div>'
+    }
+  }
+  document.head.appendChild(script)
+}
 
 async function loadDevices() {
   const res: any = await getDevices({ pageSize: 100 })
@@ -221,6 +289,7 @@ onMounted(async () => {
   loadAlerts()
   loadOrders()
   loadPestCount()
+  loadMap()
 
   window.addEventListener('resize', () => {
     weatherChart?.resize()
