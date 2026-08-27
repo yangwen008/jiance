@@ -41,11 +41,15 @@ request.interceptors.response.use(
     return Promise.reject(data)
   },
   (error) => {
+    const apiMsg = error.response?.data?.message
     if (error.response?.status === 401) {
+      console.error('[API] 401 Unauthorized:', apiMsg, '| URL:', error.config?.url)
       localStorage.removeItem('token')
       router.push('/login')
+      ElMessage.error(apiMsg || '登录已过期，请重新登录')
+    } else {
+      ElMessage.error(apiMsg || error.message || '网络错误')
     }
-    ElMessage.error(error.message || '网络错误')
     return Promise.reject(error)
   }
 )
