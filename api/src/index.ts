@@ -35,11 +35,14 @@ app.get('/api/health', (c) => {
 
 // ==================== 需要认证的路由 ====================
 app.use('/api/*', async (c, next) => {
-  // 跳过 auth 路由和 health 检查
   const path = c.req.path;
+  console.log('[MW] path=', path, 'method=', c.req.method);
+  // 跳过 auth 路由和 health 检查
   if (path.startsWith('/api/auth') || path === '/api/health') {
+    console.log('[MW] SKIP auth for:', path);
     return next();
   }
+  console.log('[MW] APPLY auth for:', path);
   return authMiddleware()(c, next);
 });
 
