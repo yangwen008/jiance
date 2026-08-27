@@ -37,16 +37,11 @@ app.get('/api/health', (c) => {
 // ==================== 需要认证的路由 ====================
 app.use('/api/*', async (c, next) => {
   const path = c.req.path;
-  const url = c.req.url;
-  // 调试端点 - 直接返回中间件看到的信息
-  if (path === '/api/mw-debug' || url.includes('/api/mw-debug')) {
-    return c.json({ path, url, method: c.req.method });
-  }
   // 跳过 health 检查和 auth 中的公开端点
   if (path === '/api/health') {
     return next();
   }
-  const publicAuthPaths = ['/api/auth/login', '/api/auth/register', '/api/auth/test-token', '/api/auth/debug'];
+  const publicAuthPaths = ['/api/auth/login', '/api/auth/register', '/api/auth/test-token'];
   if (publicAuthPaths.includes(path)) {
     return next();
   }
@@ -109,7 +104,7 @@ app.onError((err, c) => {
 export default app;
 
 // Cloudflare Workers Scheduled Event Handler
-export const scheduled = async (event: ScheduledEvent, env: Env, ctx: ExecutionContext) => {
+export const scheduled = async (event: ScheduledController, env: Env, ctx: ExecutionContext) => {
   const cron = event.cron;
   console.log(`[CRON] Triggered: ${cron}`);
 

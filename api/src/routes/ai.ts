@@ -85,7 +85,7 @@ aiRoutes.post('/chat', async (c) => {
     let context = '';
     if (c.env.VECTORIZE) {
       try {
-        const vectorResults = await c.env.VECTORIZE.query(body.message, { topK: 5 });
+        const vectorResults = await c.env.VECTORIZE.query(body.message as unknown as number[], { topK: 5 });
         if (vectorResults?.matches?.length) {
           context = vectorResults.matches
             .map((m: { metadata?: Record<string, unknown> }) => m.metadata?.text as string || '')
