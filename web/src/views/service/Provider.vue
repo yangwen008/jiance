@@ -37,8 +37,8 @@
         <el-table-column prop="address" label="地址" show-overflow-tooltip />
         <el-table-column prop="audit_status" label="审核状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="{ pending: 'warning', approved: 'success', rejected: 'danger' }[row.audit_status] as any" size="small">
-              {{ { pending: '待审核', approved: '已通过', rejected: '已拒绝' }[row.audit_status] }}
+            <el-tag :type="({ pending: 'warning', approved: 'success', rejected: 'danger' } as Record<string, string>)[row.audit_status] as any" size="small">
+              {{ ({ pending: '待审核', approved: '已通过', rejected: '已拒绝' } as Record<string, string>)[row.audit_status] }}
             </el-tag>
           </template>
         </el-table-column>

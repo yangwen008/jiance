@@ -12,8 +12,8 @@
             <el-table-column prop="value" label="触发值" width="100" />
             <el-table-column prop="status" label="状态" width="80">
               <template #default="{ row }">
-                <el-tag :type="{ unread: 'danger', read: 'warning', handled: 'success' }[row.status] as any" size="small">
-                  {{ { unread: '未读', read: '已读', handled: '已处理' }[row.status] }}
+                <el-tag :type="({ unread: 'danger', read: 'warning', handled: 'success' } as Record<string, string>)[row.status] as any" size="small">
+                  {{ ({ unread: '未读', read: '已读', handled: '已处理' } as Record<string, string>)[row.status] }}
                 </el-tag>
               </template>
             </el-table-column>

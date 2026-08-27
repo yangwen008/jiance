@@ -8,8 +8,8 @@
         <el-table-column prop="name" label="姓名" width="120" />
         <el-table-column prop="role" label="角色" width="100">
           <template #default="{ row }">
-            <el-tag :type="{ admin: 'danger', manager: 'warning', user: '' }[row.role] as any" size="small">
-              {{ { admin: '管理员', manager: '运营', user: '普通用户' }[row.role] }}
+            <el-tag :type="({ admin: 'danger', manager: 'warning', user: '' } as Record<string, string>)[row.role] as any" size="small">
+              {{ ({ admin: '管理员', manager: '运营', user: '普通用户' } as Record<string, string>)[row.role] }}
             </el-tag>
           </template>
         </el-table-column>

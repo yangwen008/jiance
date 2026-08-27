@@ -14,8 +14,8 @@
         <el-table-column prop="crop_type" label="适配作物" width="120" />
         <el-table-column prop="status" label="状态" width="80">
           <template #default="{ row }">
-            <el-tag :type="{ idle: 'success', working: 'warning', maintenance: 'danger' }[row.status] as any" size="small">
-              {{ { idle: '闲置', working: '作业中', maintenance: '维修中' }[row.status] }}
+            <el-tag :type="({ idle: 'success', working: 'warning', maintenance: 'danger' } as Record<string, string>)[row.status] as any" size="small">
+              {{ ({ idle: '闲置', working: '作业中', maintenance: '维修中' } as Record<string, string>)[row.status] }}
             </el-tag>
           </template>
         </el-table-column>

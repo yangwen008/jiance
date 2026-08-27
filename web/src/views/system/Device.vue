@@ -11,13 +11,13 @@
       <el-table :data="list" border stripe>
         <el-table-column prop="name" label="设备名称" width="150" />
         <el-table-column prop="type" label="类型" width="100">
-          <template #default="{ row }">{{ typeMap[row.type] || row.type }}</template>
+          <template #default="{ row }">{{ typeMap[row.type as keyof typeof typeMap] || row.type }}</template>
         </el-table-column>
         <el-table-column prop="village" label="所在村" width="120" />
         <el-table-column prop="status" label="状态" width="80">
           <template #default="{ row }">
-            <el-tag :type="{ online: 'success', offline: 'danger', alarm: 'warning' }[row.status] as any" size="small">
-              {{ { online: '在线', offline: '离线', alarm: '告警', maintenance: '维护' }[row.status] }}
+            <el-tag :type="({ online: 'success', offline: 'danger', alarm: 'warning', maintenance: 'info' } as Record<string, string>)[row.status] as any" size="small">
+              {{ ({ online: '在线', offline: '离线', alarm: '告警', maintenance: '维护' } as Record<string, string>)[row.status] }}
             </el-tag>
           </template>
         </el-table-column>
