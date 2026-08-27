@@ -81,18 +81,20 @@ aiRoutes.post('/chat', async (c) => {
   }
 
   try {
-    // 先从向量库检索相关知识
+    // 先从向量库检索相关知识（VECTORIZE未绑定时跳过）
     let context = '';
-    try {
-      const vectorResults = await c.env.VECTORIZE.query(body.message, { topK: 5 });
-      if (vectorResults?.matches?.length) {
-        context = vectorResults.matches
-          .map((m: { metadata?: Record<string, unknown> }) => m.metadata?.text as string || '')
-          .filter(Boolean)
-          .join('\n---\n');
+    if (c.env.VECTORIZE) {
+      try {
+        const vectorResults = await c.env.VECTORIZE.query(body.message, { topK: 5 });
+        if (vectorResults?.matches?.length) {
+          context = vectorResults.matches
+            .map((m: { metadata?: Record<string, unknown> }) => m.metadata?.text as string || '')
+            .filter(Boolean)
+            .join('\n---\n');
+        }
+      } catch {
+        // 向量检索失败时继续，不阻断
       }
-    } catch {
-      // 向量检索失败时继续，不阻断
     }
 
     const systemPrompt = `你是一个农业专家助手，专门服务于农业制种基地监测平台。

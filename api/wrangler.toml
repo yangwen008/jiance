@@ -18,10 +18,10 @@ database_id = "df819bf7-4a49-4d45-8bcb-174e6f4e21b3"  # 部署时替换
 binding = "R2"
 bucket_name = "agri-storage"
 
-# Vectorize 向量库绑定
-[[vectorize]]
-binding = "VECTORIZE"
-index_name = "agri-knowledge"
+# Vectorize 向量库绑定（暂未启用，AI问答直接用Gemini）
+# [[vectorize]]
+# binding = "VECTORIZE"
+# index_name = "agri-knowledge"
 
 # 环境变量
 [vars]

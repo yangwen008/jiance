@@ -4,7 +4,7 @@ export interface Env {
   // Bindings
   DB: D1Database;
   R2: R2Bucket;
-  VECTORIZE: VectorizeIndex;
+  VECTORIZE?: VectorizeIndex;
 
   // 环境变量
   JWT_SECRET: string;
