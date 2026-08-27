@@ -102,18 +102,21 @@ authRoutes.get('/me', async (c) => {
   return c.json(success(user));
 });
 
-// ========== 测试 token 验证（公开，无需认证） ==========
+// ========== 测试 token 签发+验证（自测） ==========
 authRoutes.get('/test-token', async (c) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return c.json({ ok: false, reason: 'no_token', header: authHeader || null });
-  }
-  const token = authHeader.slice(7);
+  // 测试1：签发一个新 token
+  let testToken: string;
   try {
-    const payload = await verifyToken(token, c.env.JWT_SECRET);
-    return c.json({ ok: true, payload });
+    testToken = await signToken({ sub: 'test-123', phone: '13800000000', role: 'admin' }, c.env.JWT_SECRET);
   } catch (err) {
-    return c.json({ ok: false, reason: 'verify_failed', error: String(err), tokenPrefix: token.substring(0, 30) });
+    return c.json({ ok: false, step: 'sign', error: String(err) });
+  }
+  // 测试2：验证刚签发的 token
+  try {
+    const payload = await verifyToken(testToken, c.env.JWT_SECRET);
+    return c.json({ ok: true, step: 'sign+verify passed', payload, tokenPrefix: testToken.substring(0, 50) });
+  } catch (err) {
+    return c.json({ ok: false, step: 'verify failed', error: String(err), tokenPrefix: testToken.substring(0, 50) });
   }
 });
   const authHeader = c.req.header('Authorization');
