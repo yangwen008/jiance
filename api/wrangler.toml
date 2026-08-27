@@ -11,7 +11,7 @@ port = 8787
 [[d1_databases]]
 binding = "DB"
 database_name = "agri-db"
-database_id = "YOUR_D1_DATABASE_ID"  # 部署时替换
+database_id = "df819bf7-4a49-4d45-8bcb-174e6f4e21b3"  # 部署时替换
 
 # R2 存储绑定
 [[r2_buckets]]
