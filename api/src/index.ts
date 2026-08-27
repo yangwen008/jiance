@@ -34,17 +34,14 @@ app.get('/api/health', (c) => {
 });
 
 // ==================== 需要认证的路由 ====================
-// 排除 /api/auth 和 /api/health
-app.use('/api/devices/*', authMiddleware());
-app.use('/api/weather/*', authMiddleware());
-app.use('/api/pest/*', authMiddleware());
-app.use('/api/alerts/*', authMiddleware());
-app.use('/api/providers/*', authMiddleware());
-app.use('/api/machines/*', authMiddleware());
-app.use('/api/dryers/*', authMiddleware());
-app.use('/api/orders/*', authMiddleware());
-app.use('/api/ai/*', authMiddleware());
-app.use('/api/export/*', authMiddleware());
+app.use('/api/*', async (c, next) => {
+  // 跳过 auth 路由和 health 检查
+  const path = new URL(c.req.url).pathname;
+  if (path.startsWith('/api/auth') || path === '/api/health') {
+    return next();
+  }
+  return authMiddleware()(c, next);
+});
 
 // ==================== 公开路由（无需认证）====================
 app.route('/api/auth', authRoutes);
