@@ -12,6 +12,7 @@ export function authMiddleware() {
   return async (c: Context<{ Bindings: Env; Variables: Variables }>, next: Next) => {
     const authHeader = c.req.header('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {
+      console.error('[AUTH] No Bearer token, URL:', c.req.url);
       return c.json(error('未登录，请先登录', 401), 401);
     }
 
@@ -20,7 +21,8 @@ export function authMiddleware() {
       const payload = await verifyToken(token, c.env.JWT_SECRET);
       c.set('user', payload);
       await next();
-    } catch {
+    } catch (err) {
+      console.error('[AUTH] Token verify failed:', err, '| token prefix:', token.substring(0, 20) + '...');
       return c.json(error('登录已过期，请重新登录', 401), 401);
     }
   };
