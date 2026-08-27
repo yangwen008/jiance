@@ -1,0 +1,24 @@
+{
+  "name": "agri-monitor-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate": "wrangler d1 migrations apply agri-db",
+    "db:migrate:local": "wrangler d1 migrations apply agri-db --local",
+    "db:studio": "wrangler d1 execute agri-db --local --command 'SELECT 1'"
+  },
+  "dependencies": {
+    "hono": "^4.4.0",
+    "drizzle-orm": "^0.32.0",
+    "jose": "^5.4.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240620.0",
+    "drizzle-kit": "^0.23.0",
+    "typescript": "^5.5.0",
+    "wrangler": "^3.60.0"
+  }
+}

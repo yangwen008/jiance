@@ -1,0 +1,38 @@
+name = "agri-monitor-api"
+main = "src/index.ts"
+compatibility_date = "2024-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 开发环境
+[dev]
+port = 8787
+
+# D1 数据库绑定
+[[d1_databases]]
+binding = "DB"
+database_name = "agri-db"
+database_id = "YOUR_D1_DATABASE_ID"  # 部署时替换
+
+# R2 存储绑定
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "agri-storage"
+
+# Vectorize 向量库绑定
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "agri-knowledge"
+
+# 环境变量
+[vars]
+JWT_SECRET = "your-jwt-secret-change-in-production"
+GEMINI_API_KEY = "your-gemini-api-key"
+SMS_ACCESS_KEY_ID = "your-aliyun-sms-key"
+SMS_ACCESS_KEY_SECRET = "your-aliyun-sms-secret"
+SMS_SIGN_NAME = "农情监测"
+SMS_TEMPLATE_CODE = "SMS_XXXXXXX"
+CORS_ORIGIN = "*"
+
+# 生产环境（通过 wrangler secret 设置敏感变量）
+# [env.production]
+# vars = { CORS_ORIGIN = "https://your-domain.com" }
