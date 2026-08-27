@@ -17,8 +17,7 @@
     "echarts": "^5.5.0",
     "axios": "^1.7.0",
     "dayjs": "^1.11.0",
-    "vue-echarts": "^7.0.0",
-    "amap-jsapi-loader": "^1.0.1"
+    "vue-echarts": "^7.0.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
