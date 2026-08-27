@@ -49,6 +49,12 @@ app.use('/api/*', async (c, next) => {
 // ==================== 公开路由（无需认证）====================
 app.route('/api/auth', authRoutes);
 
+// 受保护的测试端点（需要 token）
+app.get('/api/test-auth', (c) => {
+  const user = c.get('user');
+  return c.json({ ok: true, user, msg: 'token验证通过！' });
+});
+
 // 设备管理
 app.route('/api/devices', deviceRoutes);
 
