@@ -1,0 +1,19 @@
+{
+  "appid": "",
+  "projectname": "agri-monitor-mini",
+  "description": "农业虫情监测平台小程序",
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {
+      "scope.userLocation": {
+        "desc": "获取位置信息用于设备定位"
+      }
+    }
+  }
+}

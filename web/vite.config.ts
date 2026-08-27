@@ -25,9 +25,12 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'https://agri-monitor-api.YOUR_SUBDOMAIN.workers.dev',
+        target: 'https://agri-monitor-api.yangwen008007.workers.dev',
         changeOrigin: true,
       },
     },
+  },
+  define: {
+    'process.env': {},
   },
 })

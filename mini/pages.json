@@ -1,0 +1,28 @@
+{
+  "pages": [
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "农情监测" } },
+    { "path": "pages/weather/index", "style": { "navigationBarTitleText": "气象监测" } },
+    { "path": "pages/pest/index", "style": { "navigationBarTitleText": "虫情监测" } },
+    { "path": "pages/service/index", "style": { "navigationBarTitleText": "社会化服务" } },
+    { "path": "pages/my/index", "style": { "navigationBarTitleText": "我的" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "农情监测",
+    "navigationBarBackgroundColor": "#2979ff",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#999",
+    "selectedColor": "#2979ff",
+    "backgroundColor": "#fff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页", "iconPath": "static/tab-home.png", "selectedIconPath": "static/tab-home-active.png" },
+      { "pagePath": "pages/weather/index", "text": "气象", "iconPath": "static/tab-weather.png", "selectedIconPath": "static/tab-weather-active.png" },
+      { "pagePath": "pages/pest/index", "text": "虫情", "iconPath": "static/tab-pest.png", "selectedIconPath": "static/tab-pest-active.png" },
+      { "pagePath": "pages/service/index", "text": "服务", "iconPath": "static/tab-service.png", "selectedIconPath": "static/tab-service-active.png" },
+      { "pagePath": "pages/my/index", "text": "我的", "iconPath": "static/tab-my.png", "selectedIconPath": "static/tab-my-active.png" }
+    ]
+  }
+}
