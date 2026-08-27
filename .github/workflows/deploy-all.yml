@@ -1,0 +1,90 @@
+name: Deploy All (API + Web)
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_api:
+        description: '部署 API 后端'
+        required: true
+        default: true
+        type: boolean
+      deploy_web:
+        description: '部署 Web 前端'
+        required: true
+        default: true
+        type: boolean
+      run_migrations:
+        description: '执行 D1 数据库迁移'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  deploy-api:
+    if: inputs.deploy_api
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run D1 migrations
+        if: inputs.run_migrations
+        run: npx wrangler d1 migrations apply agri-db --remote
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Deploy API to Workers
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+  deploy-web:
+    if: inputs.deploy_web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Web
+        run: npm run build
+        env:
+          VITE_API_BASE: ${{ vars.VITE_API_BASE || 'https://agri-monitor-api.yangwen008007.workers.dev/api' }}
+
+      - name: Install Wrangler
+        run: npm install -g wrangler
+
+      - name: Deploy Web to Pages
+        run: npx wrangler pages deploy dist --project-name=agri-monitor-web --branch=main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

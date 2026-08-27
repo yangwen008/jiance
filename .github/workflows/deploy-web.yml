@@ -1,14 +1,18 @@
-name: Deploy to Cloudflare Pages
+name: Deploy Web to Cloudflare Pages
 
 on:
   push:
     branches: [main]
     paths:
       - 'web/**'
+      - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
 
+env:
+  VITE_API_BASE: ${{ vars.VITE_API_BASE }}
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
@@ -30,9 +34,49 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_API_BASE: ${{ vars.VITE_API_BASE || 'https://agri-monitor-api.yangwen008007.workers.dev/api' }}
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+          retention-days: 1
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web/dist
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Wrangler
+        run: npm install -g wrangler
 
       - name: Deploy to Cloudflare Pages
-        run: npx wrangler pages deploy dist --project-name=agri-monitor-web
+        run: npx wrangler pages deploy web/dist --project-name=agri-monitor-web --branch=main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Web 前端部署成功！"
+          else
+            echo "❌ Web 前端部署失败，请检查日志"
+          fi
