@@ -36,7 +36,7 @@ app.get('/api/health', (c) => {
 // ==================== 需要认证的路由 ====================
 app.use('/api/*', async (c, next) => {
   // 跳过 auth 路由和 health 检查
-  const path = new URL(c.req.url).pathname;
+  const path = c.req.path;
   if (path.startsWith('/api/auth') || path === '/api/health') {
     return next();
   }
