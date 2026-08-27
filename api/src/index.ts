@@ -41,8 +41,12 @@ app.use('/api/*', async (c, next) => {
   if (path === '/api/mw-debug' || url.includes('/api/mw-debug')) {
     return c.json({ path, url, method: c.req.method });
   }
-  // 跳过 auth 路由和 health 检查
-  if (path.startsWith('/api/auth') || path === '/api/health') {
+  // 跳过 health 检查和 auth 中的公开端点
+  if (path === '/api/health') {
+    return next();
+  }
+  const publicAuthPaths = ['/api/auth/login', '/api/auth/register', '/api/auth/test-token', '/api/auth/debug'];
+  if (publicAuthPaths.includes(path)) {
     return next();
   }
   return authMiddleware()(c, next);
